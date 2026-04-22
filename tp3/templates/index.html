@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChefBot — Votre Assistant Culinaire</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Background decoration -->
+    <div class="bg-grain"></div>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <!-- Status Bar -->
+    <div id="status-bar" class="status-bar hidden">
+      <span id="status-icon">⚠️</span>
+      <span id="status-text">Vérification Ollama...</span>
+    </div>
+
+    <!-- App Shell -->
+    <div class="app-shell">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <span class="logo-icon">👨‍🍳</span>
+            <div>
+              <h1 class="logo-title">ChefBot</h1>
+              <p class="logo-sub">Assistant Culinaire</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Selector -->
+        <div class="sidebar-section">
+          <label class="section-label">Modèle IA</label>
+          <div class="model-select-wrapper">
+            <select id="model-select" class="model-select">
+              <option value="">Chargement...</option>
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+          <div id="ollama-status" class="ollama-pill offline">
+            <span class="pill-dot"></span>
+            <span class="pill-text">Hors ligne</span>
+          </div>
+        </div>
+
+        <!-- Quick Suggestions -->
+        <div class="sidebar-section">
+          <label class="section-label">Idées rapides</label>
+          <div id="suggestions-list" class="suggestions-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="sidebar-footer">
+          <button id="clear-btn" class="btn-clear">
+            <span>🗑️</span> Nouvelle conversation
+          </button>
+          <div class="footer-note">
+            Propulsé par <strong>Ollama</strong> · 100% local
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Chat Area -->
+      <main class="chat-area">
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+          <div class="chat-header-info">
+            <h2>Cuisine du Monde 🌍</h2>
+            <span id="model-label" class="model-tag">—</span>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages-container" id="messages">
+          <!-- Welcome Card -->
+          <div class="welcome-card" id="welcome-card">
+            <div class="welcome-emoji">🍽️</div>
+            <h2 class="welcome-title">Bonjour, je suis ChefBot!</h2>
+            <p class="welcome-sub">
+              Votre chef personnel disponible 24h/24. Demandez-moi une recette,
+              des conseils de cuisine, ou ce que vous pouvez faire avec vos
+              ingrédients.
+            </p>
+            <div class="welcome-chips">
+              <span
+                class="chip"
+                onclick="sendQuick('Propose-moi une recette facile pour ce soir')"
+                >🌙 Recette du soir</span
+              >
+              <span
+                class="chip"
+                onclick="sendQuick('Recette végétarienne rapide')"
+                >🥦 Végétarien</span
+              >
+              <span
+                class="chip"
+                onclick="sendQuick('Dessert pour impressionner des invités')"
+                >🍰 Dessert</span
+              >
+              <span
+                class="chip"
+                onclick="sendQuick('Recette avec du poulet et des légumes')"
+                >🍗 Poulet & légumes</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator hidden" id="typing">
+          <div class="typing-avatar">👨‍🍳</div>
+          <div class="typing-dots"><span></span><span></span><span></span></div>
+          <span class="typing-text">ChefBot cuisine votre réponse...</span>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+          <div class="input-wrapper">
+            <textarea
+              id="user-input"
+              placeholder="Demandez une recette, un conseil culinaire..."
+              rows="1"
+              maxlength="2000"
+            ></textarea>
+            <div class="input-actions">
+              <span id="char-count" class="char-count">0/2000</span>
+              <button id="send-btn" class="send-btn" title="Envoyer">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="input-hint">
+            Appuyez sur <kbd>Ctrl+Entrée</kbd> pour envoyer
+          </p>
+        </div>
+      </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>

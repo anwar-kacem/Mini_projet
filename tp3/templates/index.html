@@ -1,150 +1,101 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChefBot — Votre Assistant Culinaire</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-
-<div class="bg-texture"></div>
-<div class="blob blob-a"></div>
-<div class="blob blob-b"></div>
-<div id="toast" class="toast hidden"></div>
-
-<div class="app">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-top">
-            <div class="brand">
-                <span class="brand-icon">👨‍🍳</span>
-                <div>
-                    <h1 class="brand-name">ChefBot</h1>
-                    <p class="brand-tagline">Cuisine du Monde</p>
-                </div>
-            </div>
-
-            <div id="ollama-status" class="status-pill offline">
-                <span class="dot"></span>
-                <span id="status-text">Hors ligne</span>
-            </div>
-
-            <div class="field-group">
-                <label class="field-label">Modele IA</label>
-                <div class="select-wrap">
-                    <select id="model-select" class="select"><option>Chargement...</option></select>
-                    <span class="select-icon">▾</span>
-                </div>
-            </div>
-
-            <div class="field-group">
-                <label class="field-label">Recherche de recettes</label>
-                <div class="search-wrap">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="recipe-search" class="search-input" placeholder="Ex: tajine, sushi...">
-                </div>
-                <div id="search-results" class="search-results hidden"></div>
-            </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChefBot — Assistant Culinaire</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <header>
+      <div class="logo">
+        <div class="logo-icon">🍳</div>
+        <div class="logo-text">
+          <h1>ChefBot</h1>
+          <p>Assistant Culinaire</p>
         </div>
+      </div>
+      <div class="header-actions">
+        <span class="badge">🌿 Cuisine IA</span>
+        <button id="reset-btn" onclick="resetChat()">
+          <span>↺</span> Nouvelle conversation
+        </button>
+      </div>
+    </header>
 
-        <div class="sidebar-tabs">
-            <button class="tab-btn active" data-tab="suggestions">💡 Idees</button>
-            <button class="tab-btn" data-tab="countries">🌍 Pays</button>
-            <button class="tab-btn" data-tab="favorites">⭐ Favoris</button>
+    <div id="chat-container">
+      <div class="welcome-card" id="welcome-card">
+        <div class="welcome-icon">👨‍🍳</div>
+        <h2>Bonjour, je suis ChefBot !</h2>
+        <p>
+          Posez-moi toutes vos questions sur la cuisine — recettes, techniques,
+          ingrédients, conseils… Je suis là pour vous aider à cuisiner avec
+          passion.
+        </p>
+        <div class="suggestion-chips">
+          <button
+            class="chip"
+            onclick="sendSuggestion('Donne-moi une recette de tajine poulet')"
+          >
+            🥘 Tajine poulet
+          </button>
+          <button
+            class="chip"
+            onclick="sendSuggestion('Comment faire une sauce béchamel ?')"
+          >
+            🥛 Sauce béchamel
+          </button>
+          <button
+            class="chip"
+            onclick="sendSuggestion('Recette de makroud maison')"
+          >
+            🍯 Makroud
+          </button>
+          <button
+            class="chip"
+            onclick="sendSuggestion('Idées de repas rapides en 20 minutes')"
+          >
+            ⚡ Repas rapide
+          </button>
+          <button
+            class="chip"
+            onclick="sendSuggestion('Comment réussir une pâte feuilletée ?')"
+          >
+            🥐 Pâte feuilletée
+          </button>
+          <button
+            class="chip"
+            onclick="sendSuggestion('Recette de couscous tunisien')"
+          >
+            🍲 Couscous
+          </button>
         </div>
+      </div>
+    </div>
 
-        <div class="tab-content" id="tab-suggestions">
-            <div id="suggestions-list" class="item-list"></div>
-        </div>
-        <div class="tab-content hidden" id="tab-countries">
-            <div id="countries-list" class="countries-list"></div>
-        </div>
-        <div class="tab-content hidden" id="tab-favorites">
-            <div id="favorites-list" class="item-list">
-                <div class="empty-state">⭐ Aucun favori.<br>Cliquez sur un message pour sauvegarder.</div>
-            </div>
-        </div>
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea
+          id="message-input"
+          placeholder="Demandez une recette, un conseil culinaire…"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button id="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+      <p class="input-hint">
+        Entrée pour envoyer · Maj+Entrée pour sauter une ligne
+      </p>
+    </div>
 
-        <div class="sidebar-bottom">
-            <button id="clear-btn" class="btn-ghost danger">🗑️ Nouvelle conversation</button>
-            <p class="powered-by">Propulse par <strong>Ollama</strong> - 100% local</p>
-        </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-
-        <header class="topbar">
-            <button id="menu-btn" class="icon-btn">☰</button>
-            <div class="topbar-center">
-                <span class="topbar-title">🍽️ ChefBot</span>
-                <span id="model-label" class="model-badge">—</span>
-            </div>
-            <button id="print-btn" class="icon-btn" title="Imprimer">🖨️</button>
-        </header>
-
-        <section class="messages" id="messages">
-            <div class="welcome" id="welcome-card">
-                <div class="welcome-icon">🍽️</div>
-                <h2 class="welcome-title">Bonjour, je suis ChefBot !</h2>
-                <p class="welcome-desc">Votre chef personnel 24h/24. Demandez une recette, des conseils, ou dites-moi ce que vous avez dans votre frigo !</p>
-                <div class="quick-chips">
-                    <span class="qchip" onclick="sendQuick('Propose-moi une recette facile pour ce soir')">🌙 Recette du soir</span>
-                    <span class="qchip" onclick="sendQuick('Recette vegetarienne rapide et savoureuse')">🥦 Vegetarien</span>
-                    <span class="qchip" onclick="sendQuick('Un dessert spectaculaire pour des invites')">🍰 Dessert</span>
-                    <span class="qchip chip-special" onclick="openIngredientMode()">🧺 J'ai ces ingredients...</span>
-                    <span class="qchip" onclick="sendQuick('Recette tunisienne traditionnelle')">🇹🇳 Tunisie</span>
-                    <span class="qchip" onclick="sendQuick('Recette japonaise authentique')">🇯🇵 Japon</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Mode Ingredients Panel -->
-        <div class="ingredient-panel hidden" id="ingredient-panel">
-            <div class="ingredient-panel-inner">
-                <div class="ingredient-panel-header">
-                    <span>🧺 Mes ingredients disponibles</span>
-                    <button onclick="closeIngredientMode()" class="close-panel-btn">✕</button>
-                </div>
-                <p class="ingredient-hint">Ecrivez vos ingredients separes par des virgules :</p>
-                <textarea id="ingredient-input" class="ingredient-textarea" placeholder="Ex: oeufs, fromage, tomates, poulet, pates..."></textarea>
-                <div class="ingredient-actions">
-                    <button class="btn-ingredient" onclick="sendIngredients()">
-                        🔍 Voir ce que je peux cuisiner
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="typing hidden" id="typing">
-            <div class="typing-av">👨‍🍳</div>
-            <div class="typing-dots"><span></span><span></span><span></span></div>
-            <span class="typing-label">ChefBot prepare votre reponse...</span>
-        </div>
-
-        <footer class="input-zone">
-            <div class="input-box" id="input-box">
-                <textarea id="user-input" placeholder="Demandez une recette, ou ecrivez vos ingredients disponibles..." rows="1" maxlength="2000"></textarea>
-                <div class="input-controls">
-                    <button id="ingredient-btn" class="ingredient-toggle-btn" title="Mode ingredients" onclick="openIngredientMode()">🧺</button>
-                    <span id="char-count" class="char-counter">0 / 2000</span>
-                    <button id="send-btn" class="send-btn" title="Envoyer (Ctrl+Entree)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <p class="input-hint"><kbd>Ctrl</kbd> + <kbd>Entree</kbd> pour envoyer | 🧺 pour mode ingredients</p>
-        </footer>
-
-    </main>
-</div>
-
-<script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
 </html>

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session
-import requests
+from openai import OpenAI
 import os
 from dotenv import load_dotenv
 
@@ -8,8 +8,10 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = "cuisine_chatbot_secret_key_2024"
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-API_URL = "https://api.groq.com/openai/v1/chat/completions"
+client = OpenAI(
+    api_key=os.getenv("GROQ_API_KEY"),
+    base_url="https://api.groq.com/openai/v1"
+)
 
 SYSTEM_PROMPT = """Tu es ChefBot, un assistant culinaire expert et passionné.
 Tu réponds UNIQUEMENT aux questions liées à la cuisine, recettes, ingrédients, techniques culinaires.
@@ -82,38 +84,17 @@ POUR TOUTE AUTRE QUESTION CULINAIRE (recette directe, technique, conseil) :
 
 
 def query_groq(messages):
-    if not GROQ_API_KEY:
+    if not os.getenv("GROQ_API_KEY"):
         raise Exception("GROQ_API_KEY manquante dans le fichier .env")
 
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    response = requests.post(
-        API_URL,
-        headers=headers,
-        json={
-            "model": "llama-3.3-70b-versatile",
-            "messages": messages,
-            "max_tokens": 1024,
-            "temperature": 0.7
-        },
-        timeout=30
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=messages,
+        max_tokens=1024,
+        temperature=0.7
     )
 
-    if response.status_code != 200:
-        raise Exception(f"API Error {response.status_code}: {response.text}")
-
-    result = response.json()
-
-    if "error" in result:
-        raise Exception(f"Groq Error: {result['error'].get('message', 'Unknown error')}")
-
-    if "choices" not in result or len(result["choices"]) == 0:
-        raise Exception(f"Réponse inattendue de l'API: {result}")
-
-    return result["choices"][0]["message"]["content"]
+    return response.choices[0].message.content
 
 
 @app.route('/')
